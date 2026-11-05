@@ -1,1 +1,203 @@
+name: apk-build
+run-name: Build ${{ inputs.build_id }}
 
+on:
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: Unique NexaBuilder job ID
+        required: true
+        type: string
+      timeout_minutes:
+        description: Per-command timeout (1..350 minutes; job hard ceiling is 6 hours)
+        required: false
+        type: string
+        default: '350'
+      gradle_version:
+        description: Gradle used when project has no wrapper
+        required: false
+        type: string
+        default: '8.11.1'
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: nexabuild-${{ inputs.build_id }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # GitHub-hosted jobs have a hard 6-hour ceiling; per-command timeouts are configurable below.
+    timeout-minutes: 360
+    env:
+      GH_REPO: ${{ github.repository }}
+      BUILD_ID: ${{ inputs.build_id }}
+      INPUT_TIMEOUT: ${{ inputs.timeout_minutes }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Validate job and read metadata
+        id: meta
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$BUILD_ID" =~ ^[a-zA-Z0-9_-]{4,64}$ ]] || { echo "Invalid build ID"; exit 1; }
+          [[ "$INPUT_TIMEOUT" =~ ^[0-9]+$ ]] && (( INPUT_TIMEOUT >= 1 && INPUT_TIMEOUT <= 350 )) || { echo "Invalid timeout_minutes"; exit 1; }
+          META="input/$BUILD_ID.json"
+          test -s "$META" || { echo "Metadata missing: $META"; exit 1; }
+          jq -e '.meta.name and .meta.pkg and (.source.type == "zip" or .source.type == "release-asset" or .source.type == "git")' "$META" >/dev/null
+          # The workflow-dispatch input is authoritative for the user-selected timeout.
+          jq --argjson timeout "$INPUT_TIMEOUT" '.meta.options = ((.meta.options // {}) + {timeoutMin: $timeout})' "$META" > "$RUNNER_TEMP/meta.json"
+          mv "$RUNNER_TEMP/meta.json" "$META"
+          JDK=$(jq -r '.meta.options.jdk // "17"' "$META")
+          GRADLE=$(jq -r '.meta.options.gradle // "8.11.1"' "$META")
+          [[ "$JDK" == "17" || "$JDK" == "21" ]] || { echo "Unsupported JDK: $JDK"; exit 1; }
+          [[ "$GRADLE" == "8.7" || "$GRADLE" == "8.9" || "$GRADLE" == "8.11.1" ]] || { echo "Unsupported Gradle: $GRADLE"; exit 1; }
+          FMT=$(jq -r '.meta.fmt // "apk"' "$META")
+          TYPE=$(jq -r '.meta.type // "debug"' "$META")
+          [[ "$FMT" == "apk" || ( "$FMT" == "aab" && "$TYPE" == "release" ) ]] || { echo "AAB requires release build"; exit 1; }
+          echo "jdk=$JDK" >> "$GITHUB_OUTPUT"
+          echo "gradle=$GRADLE" >> "$GITHUB_OUTPUT"
+          jq -c '{meta: .meta, source_type: .source.type}' "$META" > "$RUNNER_TEMP/release-notes.json"
+
+      - name: Create build release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if ! gh release view "build-$BUILD_ID" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release create "build-$BUILD_ID" \
+              --title "Build $BUILD_ID" \
+              --notes-file "$RUNNER_TEMP/release-notes.json" \
+              --target "$DEFAULT_BRANCH" \
+              --repo "$GH_REPO"
+          fi
+
+      - name: Install helpers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash scripts/stream.sh "$BUILD_ID" setup bash -c 'sudo apt-get update && sudo apt-get install -y jq unzip zip curl python3'
+
+      - name: Prepare release signing key
+        env:
+          NEXA_KS_B64: ${{ secrets[format('NEXABUILD_{0}_KS_B64', inputs.build_id)] }}
+          NEXA_KS_ALIAS: ${{ secrets[format('NEXABUILD_{0}_KS_ALIAS', inputs.build_id)] }}
+          NEXA_KS_STORE_PASS: ${{ secrets[format('NEXABUILD_{0}_KS_STORE_PASS', inputs.build_id)] }}
+          NEXA_KS_KEY_PASS: ${{ secrets[format('NEXABUILD_{0}_KS_KEY_PASS', inputs.build_id)] }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if [[ -n "${NEXA_KS_B64:-}" ]]; then
+            KEY_FILE="$RUNNER_TEMP/nexabuild-release.jks"
+            printf '%s' "$NEXA_KS_B64" | base64 --decode > "$KEY_FILE"
+            chmod 600 "$KEY_FILE"
+            test -s "$KEY_FILE"
+            echo "KS_FILE=$KEY_FILE" >> "$GITHUB_ENV"
+            echo "KS_ALIAS=$NEXA_KS_ALIAS" >> "$GITHUB_ENV"
+            echo "KS_STORE_PASS=$NEXA_KS_STORE_PASS" >> "$GITHUB_ENV"
+            echo "KS_KEY_PASS=$NEXA_KS_KEY_PASS" >> "$GITHUB_ENV"
+          fi
+
+      - name: Prepare project source
+        id: prepared
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXA_GIT_TOKEN: ${{ secrets[format('NEXABUILD_{0}_GIT_TOKEN', inputs.build_id)] }}
+          NEXA_ENV_TEXT: ${{ secrets[format('NEXABUILD_{0}_ENV_TEXT', inputs.build_id)] }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          META="input/$BUILD_ID.json"
+          TMO=$(jq -r '.meta.options.timeoutMin // 120' "$META")
+          [[ "$TMO" =~ ^[0-9]+$ ]] && (( TMO >= 1 && TMO <= 350 )) || { echo "Invalid project preparation timeout"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/work"
+          bash scripts/stream.sh "$BUILD_ID" prep timeout --signal=TERM --kill-after=30 "$((TMO * 60))" python3 scripts/prepare.py "$META" "$RUNNER_TEMP/work"
+          cp "$RUNNER_TEMP/nexabuild-${BUILD_ID}-prep.log" "$RUNNER_TEMP/work/prepare.log"
+          FRAMEWORK=$(tr -d '\r\n' < "$RUNNER_TEMP/work/framework.txt")
+          echo "framework=$FRAMEWORK" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ steps.meta.outputs.jdk }}
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: ${{ steps.meta.outputs.gradle }}
+          cache-read-only: false
+
+      - uses: actions/setup-node@v4
+        if: contains(fromJSON('["Web / HTML / PWA","React Native","Capacitor / Ionic","Cordova","Custom script"]'), steps.prepared.outputs.framework)
+        with:
+          node-version: '20'
+
+      - uses: subosito/flutter-action@v2
+        if: steps.prepared.outputs.framework == 'Flutter'
+        with:
+          channel: stable
+          cache: true
+
+      - name: Report active toolchain
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash scripts/stream.sh "$BUILD_ID" toolchain bash -c '''
+            echo "[toolchain] Java runtime"; java -version 2>&1
+            echo "[toolchain] Gradle fallback"; gradle --version
+            echo "[toolchain] Android SDK root: ${ANDROID_SDK_ROOT:-${ANDROID_HOME:-not-set}}"
+            SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+            if [[ -n "$SDK_ROOT" && -d "$SDK_ROOT/platforms" ]]; then
+              find "$SDK_ROOT/platforms" -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | sort -V | sed "s/^/[toolchain] platform /"
+            fi
+            if command -v node >/dev/null 2>&1; then echo "[toolchain] Node $(node --version) / npm $(npm --version)"; fi
+            if command -v flutter >/dev/null 2>&1; then flutter --version; fi
+          '''
+
+      - name: Build and verify
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_DIR: input
+          WORK_DIR: ${{ runner.temp }}/work
+          PREPARED_WORK: 'true'
+        run: bash scripts/build.sh "$INPUT_DIR" "$WORK_DIR" "$BUILD_ID"
+
+      - name: Upload final result log
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set +e
+          if [[ -f "${{ runner.temp }}/work/build.log" ]]; then
+            gh release upload "build-$BUILD_ID" "${{ runner.temp }}/work/build.log#build.log" --clobber --repo "$GH_REPO"
+          fi
+
+      - name: Delete isolated build branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set +e
+          REF="heads/nexabuild/$BUILD_ID"
+          echo "Removing temporary ref: $REF"
+          gh api --method DELETE "repos/$GH_REPO/git/refs/$REF" >/dev/null 2>&1
+          STATUS=$?
+          if [ "$STATUS" -eq 0 ]; then
+            echo "Temporary build branch removed."
+          else
+            echo "Warning: temporary branch cleanup did not complete; remove $REF from the repository if it remains."
+          fi
