@@ -100,13 +100,28 @@
         <div class="fl"><input id="ghOwner" placeholder=" " autocomplete="off"><label for="ghOwner">Owner</label></div>
         <div class="fl"><input id="ghRepo" placeholder=" " autocomplete="off"><label for="ghRepo">Repo</label></div>
         <div class="fl"><input id="ghPat" type="password" placeholder=" " autocomplete="off"><label for="ghPat">PAT</label></div>
+        <p class="hint" id="ghCheckMsg" style="margin:4px 0 0;min-height:16px"></p>
         <div style="display:flex;gap:10px;margin-top:18px;"><button type="button" class="btn lime" id="ghSave">Simpan</button><button type="button" class="btn alt" id="ghCancel">Batal</button></div>
       </div>`;
     document.body.appendChild(d);
-    d.querySelector('#ghSave').onclick = () => {
-      CREDS = { owner: d.querySelector('#ghOwner').value.trim(), repo: d.querySelector('#ghRepo').value.trim(), pat: d.querySelector('#ghPat').value.trim() };
-      stor.set('gh_owner', CREDS.owner); stor.set('gh_repo', CREDS.repo); stor.set('gh_pat', CREDS.pat);
-      d.hidden = true; updateConn(); pollOnce();
+    d.querySelector('#ghSave').onclick = async () => {
+      const owner = d.querySelector('#ghOwner').value.trim(), repo = d.querySelector('#ghRepo').value.trim(), pat = d.querySelector('#ghPat').value.trim();
+      const msg = d.querySelector('#ghCheckMsg'), save = d.querySelector('#ghSave');
+      if (!owner || !repo || !pat) { msg.textContent = 'Owner, repo, dan PAT wajib diisi.'; msg.style.color = '#c0392b'; return; }
+      save.disabled = true; save.textContent = 'Memeriksa…'; msg.textContent = 'Menguji akses ke repositori…'; msg.style.color = '';
+      const prevCreds = CREDS;
+      try {
+        CREDS = { owner, repo, pat };
+        const repoInfo = await ghFetch(repoBase());
+        if (!repoInfo.permissions || repoInfo.permissions.push !== true) throw new Error('PAT tidak punya akses tulis (push) ke repo ini.');
+        await ghFetch(`${repoBase()}/actions/workflows/build.yml`).catch(() => { throw new Error('Workflow .github/workflows/build.yml tidak ditemukan di repo ini. Pastikan sudah di-push dan Actions diaktifkan.'); });
+        stor.set('gh_owner', owner); stor.set('gh_repo', repo); stor.set('gh_pat', pat);
+        d.hidden = true; updateConn(); pollFailCount = 0; pollOnce();
+      } catch (e) {
+        CREDS = prevCreds;
+        msg.textContent = e.status === 401 ? 'PAT tidak valid atau sudah kedaluwarsa.' : e.status === 404 ? 'Repo tidak ditemukan — cek ejaan owner/repo, atau PAT belum diberi akses ke repo ini.' : (e.message || 'Gagal memeriksa kredensial.');
+        msg.style.color = '#c0392b';
+      } finally { save.disabled = false; save.textContent = 'Simpan'; }
     };
     d.querySelector('#ghCancel').onclick = () => d.hidden = true;
     d.querySelector('#ghOwner').value = CREDS.owner || ''; d.querySelector('#ghRepo').value = CREDS.repo; d.querySelector('#ghPat').value = CREDS.pat || '';
@@ -139,14 +154,22 @@
     r.display_title === `Build ${id}` || r.name === `Build ${id}` || r.head_branch === `nexabuild/${id}`
   ) || null;
 
+  let lastGoodBuilds = [];
   API.list = async () => {
     if (!CREDS.owner || !CREDS.pat) return [];
-    const [rel, runData] = await Promise.all([
-      ghFetch(`${repoBase()}/releases?per_page=100`),
-      ghFetch(`${repoBase()}/actions/runs?per_page=100&event=workflow_dispatch`).catch(() => ({ workflow_runs: [] }))
-    ]);
+    // Releases are the source of truth; a transient network blip here must not wipe
+    // the dashboard. Only a *real* GitHub response (4xx/5xx) is allowed to surface as
+    // an error — a raw network failure falls back to the last known-good list instead.
+    let rel;
+    try {
+      rel = await ghFetch(`${repoBase()}/releases?per_page=100`);
+    } catch (e) {
+      if (e && typeof e.status === 'number') throw e; // real GitHub error: owner/repo wrong, PAT revoked, etc.
+      return lastGoodBuilds; // network-layer failure only: keep showing what we already had
+    }
+    const runData = await ghFetch(`${repoBase()}/actions/runs?per_page=100&event=workflow_dispatch`).catch(() => ({ workflow_runs: [] }));
     const runs = runData.workflow_runs || [];
-    return (rel || []).filter(r => (r.tag_name || '').startsWith('build-')).map(r => {
+    const out = (rel || []).filter(r => (r.tag_name || '').startsWith('build-')).map(r => {
       const id = r.tag_name.slice(6);
       let meta = {};
       try { meta = JSON.parse(r.body || '{}'); } catch (_) {}
@@ -178,6 +201,8 @@
         runId: run?.id || null
       };
     });
+    lastGoodBuilds = out;
+    return out;
   };
 
   API.machine = async () => {
@@ -998,10 +1023,23 @@
         }
       }
       if (typeof renderAll === 'function') renderAll();
+      pollFailCount = 0;
     } catch (e) {
-      const mt = qs('#mTxt'); if (mt) mt.textContent = `GitHub: ${e.message}`;
+      pollFailCount++;
+      const mt = qs('#mTxt');
+      const isNetwork = !(e && typeof e.status === 'number');
+      if (mt) mt.textContent = isNetwork
+        ? (pollFailCount > 1 ? 'Menyambung ulang ke GitHub…' : 'Mesin siap')
+        : `GitHub: ${e.message}`;
+      // A raw network failure (device switched network, brief signal loss) is retried
+      // quickly instead of waiting the full 30s cycle, so the badge recovers on its own.
+      if (isNetwork && pollFailCount <= 4) {
+        clearTimeout(pollRetryTimer);
+        pollRetryTimer = setTimeout(pollOnce, Math.min(3000 * pollFailCount, 12000));
+      }
     }
   }
+  let pollFailCount = 0, pollRetryTimer = null;
   async function pollMachine() {
     if (!CREDS.pat) return;
     try {
