@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NexaBuilder Studio</title>
+<meta name="description" content="Bangun APK dan AAB Android dari kode proyek Anda, lengkap dengan log langsung dan riwayat build.">
+<meta name="theme-color" content="#ffffff">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:light;--ink:#141414;--paper:#fff;--soft:#f4f4f4;--soft2:#e9e9e9;--muted:#696969;--line:#171717;--shadow:4px 4px 0 #141414;--radius:18px;--ease:cubic-bezier(.2,.8,.2,1);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{scroll-padding-top:100px;scroll-behavior:smooth}body{margin:0;min-height:100vh;padding:0 0 calc(100px + env(safe-area-inset-bottom,0px));background:#fff;color:var(--ink);font:15px/1.5 "Bricolage Grotesque",system-ui,sans-serif;background-image:radial-gradient(#d7d7d7 1px,transparent 1.3px);background-size:20px 20px}body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:#fff;z-index:30}button,input,textarea,select{font:inherit}button{color:inherit}button,.btn,.pn,.logo,.tag,.sp,.ct,.pt,.tb,.steps,.drop,summary{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #555;outline-offset:3px} [hidden]{display:none!important}.mono{font-family:"JetBrains Mono",monospace}
+header{position:sticky;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:20;width:min(1120px,calc(100% - 28px));margin:8px auto 0;display:flex;align-items:center;gap:14px;background:#fff;border:2.5px solid var(--ink);border-radius:20px;box-shadow:var(--shadow);padding:9px 12px;animation:drop .45s var(--ease) both}.logo{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;letter-spacing:-.04em;flex:1;white-space:nowrap}.logo i{display:grid;place-items:center;width:34px;height:34px;border:2px solid var(--ink);border-radius:10px;background:#111;color:#fff;font-style:normal;font-size:17px;box-shadow:2px 2px 0 #aaa}.pn{position:relative;display:flex;align-items:center;gap:2px;padding:4px;background:#fff;border:2px solid var(--ink);border-radius:14px}.pn button{position:relative;z-index:1;border:0;background:transparent;border-radius:9px;padding:7px 13px;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}.pn button.on{background:#111;color:#fff}.ind{display:none}#tabs{display:flex}#nav{display:none}.sp{display:inline-flex;align-items:center;gap:7px;border:2px solid var(--ink);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:800;white-space:nowrap;background:#fff}.sp.bad{background:#e8e8e8}.sp.run{background:#f0f0f0}.sp.ok{background:#fff}.dot{width:8px;height:8px;background:#111;border-radius:50%}.run .dot{animation:pulse 1.2s infinite}
+main{width:min(1120px,100%);margin:0 auto;padding:28px 18px 42px}.view{display:none}.view.on{display:block;animation:viewIn .24s var(--ease) both}.pagehead{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:4px 0 24px}.page-title,.pt{margin:0;font-size:clamp(27px,5vw,40px);font-weight:800;letter-spacing:-.055em;line-height:1.08}.pt{display:inline-block;margin:4px 0 22px;padding:5px 13px 8px;border:2.5px solid var(--ink);border-radius:12px;background:#fff;box-shadow:var(--shadow)}.subhead,.hint{color:var(--muted);font-size:13px}.subhead{margin:8px 0 0;max-width:650px}.card,.sc{background:#fff;border:2.5px solid var(--ink);border-radius:var(--radius);box-shadow:var(--shadow)}.card{padding:18px;margin:0 0 18px}.ct{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:4px 10px;border:2px solid var(--ink);border-radius:8px;background:#f3f3f3;font-size:13px;font-weight:800}.cardhead{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}.stepno{flex:none;display:grid;place-items:center;width:34px;height:34px;border:2px solid var(--ink);border-radius:10px;background:#111;color:#fff;font-size:12px;font-weight:800}.cardhead strong{display:block;font-size:17px;font-weight:800;letter-spacing:-.025em}.cardhead small{display:block;margin-bottom:1px;color:#777;font:700 10px/1.4 "JetBrains Mono",monospace;letter-spacing:.08em}.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.sc{padding:17px 19px;transition:transform .16s var(--ease),box-shadow .16s var(--ease)}.sc:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #141414}.sc b{display:block;font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-.06em}.sc span{font-size:12px;font-weight:700;color:#666}.two{grid-template-columns:1fr 1fr}.buildgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.8fr);align-items:start;gap:20px}.build-form{min-width:0}.build-side{position:sticky;top:90px;min-width:0}.fieldgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.fl{position:relative;margin:14px 0 0}.fl input,.fl textarea,select{width:100%;height:48px;padding:0 14px;border:2.5px solid var(--ink);border-radius:11px;background:#fff;color:#111;font-size:14px;transition:box-shadow .16s var(--ease),transform .16s var(--ease)}.fl textarea{height:auto;min-height:96px;padding:12px 14px;resize:vertical}.fl label{position:absolute;left:11px;top:12px;padding:0 5px;color:#747474;background:#fff;font-size:13px;pointer-events:none;transition:all .15s ease}.fl input:focus+label,.fl input:not(:placeholder-shown)+label,.fl textarea:focus+label,.fl textarea:not(:placeholder-shown)+label{top:-9px;font-size:11px;font-weight:800;color:#111}.fl input:focus,.fl textarea:focus,select:focus{outline:0;box-shadow:3px 3px 0 #aaa}select{appearance:none;padding-right:38px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1.5 1.5l5.5 5.5 5.5-5.5' fill='none' stroke='%23141414' stroke-width='2.5'/%3E%3C/svg%3E") no-repeat right 14px center;cursor:pointer}.fieldhint{margin:7px 0 0;color:#777;font-size:11px}.tag{display:inline-flex;align-items:center;margin:0 0 7px;padding:2px 8px;border:1.7px solid var(--ink);border-radius:7px;background:#f5f5f5;font-size:11px;font-weight:800}.f{margin-bottom:15px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.seg{display:flex;gap:5px;padding:4px;border:2.5px solid var(--ink);border-radius:12px;background:#f6f6f6}.seg button{flex:1;min-width:0;padding:9px 8px;border:2px solid transparent;border-radius:8px;background:transparent;font-size:13px;font-weight:800;cursor:pointer;transition:all .16s var(--ease)}.seg button.on{border-color:#111;background:#111;color:#fff;box-shadow:2px 2px 0 #aaa}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:6px 10px;border:2px solid var(--ink);border-radius:9px;background:#fff;font:700 11px "JetBrains Mono",monospace;cursor:pointer}.chip.on{background:#eee;box-shadow:2px 2px 0 #111}.chip.on::before{content:"✓ ";font-family:inherit}.tg{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #e7e7e7;font-size:13px;font-weight:600}.tg:last-child{border-bottom:0}.tg input{appearance:none;position:relative;flex:none;width:48px;height:27px;border:2px solid #111;border-radius:30px;background:#fff;cursor:pointer;transition:background .2s}.tg input::after{content:"";position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#111;transition:transform .2s}.tg input:checked{background:#e5e5e5}.tg input:checked::after{transform:translateX(20px)}.file{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;padding:5px 7px 5px 13px;border:2.5px solid var(--ink);border-radius:11px;background:#fff;color:#555;cursor:pointer}.file span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}.file b{flex:none;padding:5px 10px;border:2px solid #111;border-radius:7px;background:#111;color:#fff;font-size:11px}.drop{display:flex;align-items:center;gap:13px;min-height:78px;padding:13px;border:2.5px dashed #111;border-radius:13px;background:#fafafa;cursor:pointer;transition:background .18s,border .18s,transform .18s}.drop:hover,.drop.has{background:#eee;border-style:solid;transform:translateY(-1px)}.drop i{display:grid;place-items:center;flex:none;width:42px;height:42px;border:2px solid #111;border-radius:11px;background:#111;color:#fff;font-style:normal;font-size:21px}.drop b{display:block;font-size:14px}.drop small{display:block;color:#777;font-size:11px}.drop .dropcopy{min-width:0}.drop .dropcopy strong{display:block;overflow-wrap:anywhere}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:43px;padding:10px 15px;border:2.5px solid #111;border-radius:11px;background:#111;color:#fff;box-shadow:3px 3px 0 #111;font-size:13px;font-weight:800;text-align:center;cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s}.btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #111}.btn:active{transform:translate(2px,2px);box-shadow:0 0 0 #111}.btn:disabled{opacity:.48;pointer-events:none}.btn.alt,.btn.lime{background:#fff;color:#111}.btn.go{width:100%;min-height:54px;font-size:16px}.btn.mini{min-height:32px;padding:5px 9px;font-size:11px;box-shadow:2px 2px 0 #111}.term{overflow:hidden;margin-bottom:14px;border:2.5px solid #111;border-radius:17px;background:#fff;box-shadow:var(--shadow)}.tb{display:flex;align-items:center;gap:7px;padding:11px 13px;border-bottom:2px solid #111;background:#f7f7f7;font-size:12px;font-weight:800}.tb i{width:9px;height:9px;border:1.5px solid #111;border-radius:50%;background:#fff}.tb span{margin-left:6px}.tb .terminal-status{margin-left:auto;color:#666;font:700 10px "JetBrains Mono",monospace}.lt{display:flex;gap:7px;padding:8px 12px;border-bottom:1px solid #ddd}.lt button{padding:4px 8px;border:1.5px solid #111;border-radius:7px;background:#fff;font-size:10px;font-weight:800;cursor:pointer}.build-explain{display:grid;gap:3px;padding:10px 13px;border-bottom:1px solid #ddd;background:#fafafa}.build-explain b{font-size:12px;font-weight:800}.build-explain span{color:#666;font-size:11px;line-height:1.45}.build-explain small{color:#777;font:600 10px "JetBrains Mono",monospace}.log{height:220px;overflow:auto;padding:12px 14px;background:#fff;color:#222;font:11px/1.65 "JetBrains Mono",monospace;white-space:pre-wrap;overflow-wrap:anywhere}.log::after{content:"▍";color:#111;animation:blink 1s steps(2) infinite}.log .e{color:#111;font-weight:800;text-decoration:underline}.log .w{color:#666}.log .o{color:#111;font-weight:800}.log .m{color:#888}.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:10px 12px 8px}.st{display:flex;align-items:center;justify-content:center;min-height:28px;padding:3px 4px;border:1.5px solid #c5c5c5;border-radius:7px;background:#fff;color:#777;font-size:9px;font-weight:800;text-align:center}.st.done{border-color:#111;background:#111;color:#fff}.st.now{border-color:#111;background:#eee;color:#111;animation:stepPulse 1.5s infinite}.st.fail{border-color:#111;background:#ddd;color:#111}.pbmeta{display:flex;justify-content:space-between;align-items:center;padding:4px 12px 7px;font:800 10px "JetBrains Mono",monospace;letter-spacing:.05em}.pbmeta strong{padding:2px 7px;border:1.5px solid #111;border-radius:7px;background:#fff;font-size:12px}.pb{height:15px;margin:0 12px 12px;overflow:hidden;border:2px solid #111;border-radius:99px;background:#fff}.pb i{display:block;width:0;height:100%;border-radius:99px;background:repeating-linear-gradient(45deg,#111 0 7px,#fff 7px 14px);background-size:20px 20px;transition:width .45s var(--ease)}.pb.on i{animation:stripe .8s linear infinite}.tact{display:flex;gap:8px;flex-wrap:wrap;padding:0 12px 11px}.install-guide{display:none;margin:0 12px 12px;padding:10px;border:1.5px solid #111;border-radius:9px;background:#f6f6f6;font-size:11px}.install-guide.on{display:block}.sticky .recent-card{margin-top:15px}.advanced{padding:0}.advanced summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px;cursor:pointer;list-style:none;font-size:14px;font-weight:800}.advanced summary::-webkit-details-marker{display:none}.advanced summary::after{content:"+";display:grid;place-items:center;flex:none;width:27px;height:27px;border:2px solid #111;border-radius:8px;font-size:17px;transition:transform .2s}.advanced[open] summary::after{content:"−"}.advanced-inner{padding:0 18px 18px;border-top:1px solid #ddd}.advanced-inner>.card{margin:14px 0 0;box-shadow:none;border-width:1.5px}.advanced-inner .card:first-child{margin-top:16px}.advanced-inner .ct{margin-top:0}.item,.rw{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:10px 12px;border:2px solid #111;border-radius:12px;background:#fff}.item small,.rw small{display:block;color:#777;font-size:11px}.rw{padding:13px}.mt{color:#777;font-size:11px}.ac{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.empty{padding:22px;border:1.5px dashed #aaa;border-radius:12px;color:#777;text-align:center;font-size:13px}.br{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #e3e3e3;font-size:13px}.br span{color:#777}.br b{font-weight:800}.pg{margin:10px 0}.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.55);backdrop-filter:blur(5px)}.modal .card{width:min(100%,480px);max-height:88vh;overflow:auto;margin:0}.modal-actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 88px);z-index:70;max-width:min(92vw,480px);padding:10px 15px;border:2px solid #111;border-radius:11px;background:#fff;box-shadow:var(--shadow);font-size:13px;font-weight:800;text-align:center;opacity:0;pointer-events:none;transform:translate(-50%,15px);transition:all .2s}#toast.on{opacity:1;transform:translate(-50%,0)}
+@media(max-width:760px){header{width:calc(100% - 22px);margin-top:6px;padding:7px 9px;border-radius:16px}.logo{font-size:15px}.logo i{width:31px;height:31px}#tabs{display:none}#nav{display:flex;position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:40;transform:translateX(-50%);width:min(94vw,440px);justify-content:space-around;padding:5px;border:2px solid #111;border-radius:16px;box-shadow:5px 5px 0 #111;background:#fff}#nav button{flex:1;padding:9px 5px;font-size:12px}main{padding:22px 13px 28px}.pagehead{display:block;margin-bottom:17px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.sc{padding:13px 15px}.sc b{font-size:30px}.two{grid-template-columns:1fr}.buildgrid{grid-template-columns:1fr;gap:14px}.build-side{position:static}.card{padding:15px;margin-bottom:14px}.fieldgrid{grid-template-columns:1fr}.log{height:155px}.steps{gap:4px}.st{font-size:8px}.sticky .recent-card{display:none}.btn.go{min-height:52px}.row{gap:9px}}
+@media(min-width:761px){body{padding-bottom:40px}#nav{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+@keyframes viewIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}@keyframes drop{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}@keyframes pulse{50%{opacity:.25}}@keyframes blink{50%{opacity:0}}@keyframes stripe{to{background-position:20px 0}}@keyframes stepPulse{50%{background:#fff}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><i>N</i><span>NexaBuilder</span></div>
+  <div class="pn" id="tabs"><i class="ind"></i><button class="on" data-go="dasbor">Dasbor</button><button data-go="baru">Build baru</button><button data-go="riwayat">Riwayat</button><button data-go="set">Pengaturan</button></div>
+  <span class="sp" id="mSt"><i class="dot"></i><span id="mTxt">Mesin siap</span></span>
+</header>
+
+<main>
+<section class="view on" id="v-dasbor">
+  <div class="pagehead"><div><h2 class="page-title">Studio build</h2><p class="subhead">Satu tempat untuk menyiapkan proyek dan menghasilkan aplikasi Android.</p></div></div>
+  <div class="grid stats">
+    <div class="sc"><b id="sTot">0</b><span>Total build</span></div>
+    <div class="sc"><b id="sOk">0</b><span>Berhasil</span></div>
+    <div class="sc"><b id="sBad">0</b><span>Gagal</span></div>
+    <div class="sc"><b id="sQ">0</b><span>Dalam antrean</span></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><div class="ct">Mesin build</div>
+      <div class="br"><span>Provider</span><b id="runnerT">GitHub Actions</b></div>
+      <div class="br"><span>Antrean</span><b id="queueT">—</b></div>
+      <div class="br"><span>Berjalan</span><b id="runningT">—</b></div>
+      <p class="hint" id="mInfo">Hubungkan repositori worker untuk melihat status runner.</p></div>
+    <div class="card"><div class="ct">Aktivitas terbaru</div><div id="recent"></div></div>
+  </div>
+  <button class="btn" data-go="baru">＋ Buat aplikasi Android</button>
+</section>
+
+<section class="view" id="v-baru">
+  <div class="pagehead"><div><h2 class="page-title">Build aplikasi</h2><p class="subhead">Isi identitas, pilih sumber proyek. NexaBuilder akan mendeteksi toolchain dan menyiapkan konfigurasi secara otomatis.</p></div></div>
+  <div class="buildgrid">
+    <div class="build-form">
+      <div class="card">
+        <div class="cardhead"><span class="stepno">01</span><div><small>IDENTITAS APLIKASI</small><strong>Nama dan tampilan aplikasi</strong></div></div>
+        <div class="fl"><input id="appName" placeholder=" " autocomplete="off"><label for="appName">Nama aplikasi</label></div>
+        <div class="fl"><input id="pkg" class="mono" placeholder=" " value="com.nexabuilder.myapp" autocomplete="off" autocapitalize="none"><label for="pkg">ID paket Android</label></div>
+        <p class="fieldhint">ID paket dibuat otomatis dari nama aplikasi. Kamu tetap bisa mengubahnya.</p>
+        <div style="margin-top:16px"><span class="tag">Ikon aplikasi · PNG</span><label class="file"><span>Pilih ikon aplikasi…</span><b>Telusuri</b><input type="file" id="iconIn" accept="image/png" hidden></label><p class="fieldhint">Gunakan gambar persegi resolusi tinggi untuk hasil terbaik.</p></div>
+      </div>
+      <div class="card">
+        <div class="cardhead"><span class="stepno">02</span><div><small>SUMBER PROYEK</small><strong>Masukkan kode aplikasi</strong></div></div>
+        <div class="seg f" id="srcSeg"><button class="on" data-v="zip">Unggah ZIP</button><button data-v="git">Repositori GitHub</button></div>
+        <div id="srcZip"><div class="drop" id="drop" tabindex="0" role="button" aria-label="Pilih ZIP proyek"><i>↑</i><div class="dropcopy"><b>Pilih ZIP proyek</b><small>Ketuk untuk membuka file manager · ZIP besar dikirim sebagai Release asset GitHub (maksimal 2 GiB per file)</small></div></div><input type="file" id="zipIn" accept=".zip,application/zip" hidden></div>
+        <div id="srcGit" hidden>
+          <div class="fl"><input id="gitUrl" placeholder=" " autocomplete="url"><label for="gitUrl">URL repositori GitHub HTTPS</label></div>
+          <button type="button" class="btn alt mini" id="qrBtn" style="margin-top:10px">Pindai QR</button>
+          <div class="row"><div class="fl"><input id="gitBr" placeholder=" " value="main"><label for="gitBr">Branch</label></div><div class="fl"><input id="gitTok" type="password" placeholder=" " autocomplete="off"><label for="gitTok">Token Git privat (opsional)</label></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="cardhead"><span class="stepno">03</span><div><small>HASIL BUILD</small><strong>Pilih hasil yang dibutuhkan</strong></div></div>
+        <div class="f"><span class="tag">Jenis aplikasi</span><div class="seg" id="typeSeg"><button class="on" data-v="debug">APK uji coba</button><button data-v="release">Release</button></div></div>
+        <div class="f" style="margin-bottom:0"><span class="tag">Format keluaran</span><div class="seg" id="fmtSeg"><button class="on" data-v="apk">APK · bisa dipasang</button><button data-v="aab">AAB · distribusi</button></div></div>
+        <p class="fieldhint">APK adalah pilihan standar untuk dipasang langsung di Android. AAB digunakan untuk jalur distribusi tertentu dan tidak bisa dipasang langsung.</p>
+      </div>
+      <details class="card advanced" id="advancedSettings">
+        <summary><span>Pengaturan lanjutan</span><span class="fieldhint" style="margin:0">Framework, versi, permission, SDK, signing, dan lainnya</span></summary>
+        <div class="advanced-inner">
+          <div class="card"><div class="ct">Deteksi proyek & versi</div>
+            <div class="fl"><select id="framework"><option>Auto detect</option><option>Web / HTML / PWA</option><option>Android native (Gradle)</option><option>Flutter</option><option>React Native</option><option>Capacitor / Ionic</option><option>Cordova</option><option>Custom script</option></select></div>
+            <p class="fieldhint">Custom script: sertakan <b>nexabuilder-build.sh</b> di root proyek ZIP/Git untuk framework khusus. Script harus menaruh APK/AAB hasil build di folder output yang diberikan mesin.</p>
+            <div class="row"><div class="fl"><input id="vName" placeholder=" " value="1.0.0"><label for="vName">Versi aplikasi</label></div><div class="fl"><input id="vCode" type="number" placeholder=" " value="1"><label for="vCode">Kode versi</label></div></div>
+            <div class="row f" style="margin-top:14px"><div><span class="tag">SDK minimum</span><select id="minSdk"><option>21</option><option selected>24</option><option>26</option><option>29</option></select></div><div><span class="tag">SDK target</span><select id="tgtSdk"><option>34</option><option>35</option><option selected>36</option></select></div></div>
+            <div class="f"><span class="tag">Arsitektur CPU</span><div class="chips" id="arch"><button class="chip on">arm64-v8a</button><button class="chip on">armeabi-v7a</button><button class="chip">x86_64</button></div></div>
+          </div>
+          <div class="card"><div class="ct">Izin Android</div><p class="hint" style="margin:0 0 12px">Pilih izin yang benar-benar digunakan proyek. Izin berbahaya tetap perlu diminta saat aplikasi berjalan oleh kode aplikasi.</p><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px"><span class="fieldhint" style="margin:0">Izin dipilih</span><b id="pcnt" class="tag">2 dipilih</b></div><div id="perms"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn alt mini" id="pBase">Izin dasar</button><button type="button" class="btn alt mini" id="pNone">Kosongkan</button></div><div class="row" style="align-items:end;margin-top:12px"><div class="fl" style="margin:0"><input id="permCustom" placeholder=" "><label for="permCustom">Permission khusus</label></div><button type="button" class="btn alt mini" id="permAdd">Tambah izin</button></div><div id="customPermRows" class="chips" style="margin-top:10px"></div><p class="fieldhint">Masukkan nama lengkap seperti android.permission.CAMERA atau com.vendor.permission.ACCESS_DEVICE. Izin tetap tunduk pada aturan Android dan Google Play.</p></div>
+          <div class="card"><div class="ct">Fitur aplikasi</div>
+            <div class="f"><span class="tag">Orientasi layar</span><select id="ori"><option value="auto">Otomatis</option><option value="portrait">Potret</option><option value="landscape">Lanskap</option></select></div>
+            <label class="tg"><span>Layar tetap menyala</span><input type="checkbox" data-feat="keepScreenOn"></label>
+            <label class="tg"><span>Layar penuh / immersive</span><input type="checkbox" data-feat="fullscreen"></label>
+            <label class="tg"><span>Izinkan lalu lintas HTTP</span><input type="checkbox" data-feat="cleartext"></label>
+            <label class="tg"><span>Izinkan backup data</span><input type="checkbox" data-feat="backup" checked></label>
+            <label class="tg"><span>Akselerasi perangkat keras</span><input type="checkbox" data-feat="hwAccel" checked></label>
+          </div>
+          <div class="card" id="signCard" hidden><div class="ct">Tanda tangan Release</div><p class="hint">Gunakan keystore milik sendiri. Simpan salinan aman; kunci yang hilang dapat menghalangi pembaruan aplikasi.</p><label class="file"><span>Pilih keystore (.jks/.keystore)…</span><b>Telusuri</b><input type="file" id="ksIn" accept=".jks,.keystore" hidden></label>
+            <div class="row"><div class="fl"><input id="alias" placeholder=" "><label for="alias">Alias</label></div><div class="fl"><input id="ksPw" type="password" placeholder=" "><label for="ksPw">Sandi keystore</label></div></div>
+            <div class="fl"><input id="ksKeyPw" type="password" placeholder=" "><label for="ksKeyPw">Sandi key (opsional)</label></div>
+          </div>
+          <div class="card"><div class="ct">Lingkungan & layanan</div>
+            <div class="fl"><textarea id="env" placeholder=" "></textarea><label for="env">Variabel lingkungan (KEY=nilai)</label></div>
+            <div style="margin-top:14px"><span class="tag">google-services.json · Firebase</span><label class="file"><span>Pilih konfigurasi Firebase…</span><b>Telusuri</b><input type="file" id="gsv" accept=".json,application/json" hidden></label></div>
+          </div>
+          <div class="card"><div class="ct">Toolchain & opsi Gradle</div>
+            <label class="tg"><span>Clean build</span><input type="checkbox" data-opt="clean"></label>
+            <label class="tg"><span>Gunakan cache Gradle</span><input type="checkbox" data-opt="cache" checked></label>
+            <label class="tg"><span>Mode offline</span><input type="checkbox" data-opt="offline"></label>
+            <label class="tg"><span>Naikkan kode versi otomatis</span><input type="checkbox" data-opt="autoVersion"></label>
+            <label class="tg"><span>Pisahkan APK per arsitektur</span><input type="checkbox" data-opt="split"></label>
+            <label class="tg"><span>Aktifkan debug pada hasil</span><input type="checkbox" data-opt="debuggable"></label>
+            <div class="row"><div class="fl"><input id="tmo" type="number" min="1" max="350" placeholder=" " value="120"><label for="tmo">Timeout per proses (1–350 menit)</label></div><div class="fl"><input id="sub" placeholder=" "><label for="sub">Subfolder proyek</label></div></div>
+            <div class="fl"><input id="outn" placeholder=" "><label for="outn">Nama file keluaran</label></div>
+            <div class="fl"><input id="webOut" placeholder=" "><label for="webOut">Folder hasil Web build (mis. dist)</label></div>
+            <div class="fl"><input id="gargs" class="mono" placeholder=" "><label for="gargs">Argumen Gradle tambahan</label></div>
+            <p class="fieldhint">Versi JDK dan Gradle dapat diatur dari Pengaturan studio. Deteksi framework tetap berjalan otomatis.</p>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="build-side">
+      <div class="term"><div class="tb"><i></i><i></i><i></i><span id="liveTitle">Pemantau build</span><span class="terminal-status" id="terminalState">MENUNGGU</span></div>
+        <div class="lt"><button id="lcopy">Salin log</button><button id="lsave">Simpan log</button><button id="lclear">Bersihkan</button></div>
+        <div class="build-explain" aria-live="polite"><b id="buildExplainTitle">Menunggu proyek</b><span id="buildExplain">Pilih source dan identitas aplikasi. Setelah dikirim, status, terminal, dan hasil dibaca dari GitHub Actions yang benar-benar berjalan.</span><small id="taskCount">Menunggu aktivitas compiler</small><small>Persentase mengikuti tahapan worker yang terkonfirmasi; baris compiler ditampilkan langsung di terminal karena jumlah pekerjaan tiap proyek berbeda.</small></div>
+        <div class="log" id="log"><div class="m">$ Menunggu proyek dan perintah build…</div></div>
+        <div class="steps" id="steps"></div>
+        <div class="pbmeta"><span>PROGRES PROSES BUILD</span><strong id="livePct">0%</strong></div><div class="pb" id="pb"><i id="liveBar"></i></div>
+        <div class="tact"><button class="btn alt mini" id="cancelBtn" hidden>Batalkan build</button><button class="btn mini" id="dlBtn" hidden>Unduh APK</button></div>
+        <p class="install-guide" id="installGuide">Setelah file APK diunduh, buka melalui notifikasi atau folder Unduhan Android lalu konfirmasi pemasangan.</p>
+      </div>
+      <button class="btn go" id="startBtn">Mulai build APK</button>
+      <div class="card recent-card"><div class="ct">Build terakhir</div><div id="recent2"></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="v-riwayat">
+  <h2 class="pt">Riwayat build</h2>
+  <div class="row" style="margin-bottom:22px;align-items:end"><div class="fl" style="margin:0"><input id="q" placeholder=" "><label for="q">Cari nama atau ID paket</label></div>
+    <select id="fil" aria-label="Status"><option value="">Semua status</option><option value="ok">Berhasil</option><option value="bad">Gagal</option><option value="run">Berjalan</option></select></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px"><button class="btn alt mini" id="exp">Ekspor CSV</button><button class="btn alt mini" id="clr">Hapus semua riwayat</button></div><div id="rows"></div>
+</section>
+
+<section class="view" id="v-set">
+  <h2 class="pt">Pengaturan studio</h2>
+  <div class="grid two">
+    <div class="card"><div class="ct">Tanda tangan aplikasi</div><p class="hint" style="margin:0;color:var(--ink)">APK debug dapat dipasang untuk pengujian. Build Release memerlukan keystore milik Anda. NexaBuilder mengirim file dan kata sandinya sebagai GitHub Actions Secrets terenkripsi. Simpan cadangan keystore di tempat aman.</p></div>
+    <div class="card"><div class="ct">Toolchain build</div>
+      <div class="row f"><div><span class="tag">JDK</span><select id="jdk"><option selected>17</option><option>21</option></select></div><div><span class="tag">Gradle (tanpa wrapper)</span><select id="grd"><option>8.7</option><option>8.9</option><option selected>8.11.1</option></select></div></div>
+      <p class="fieldhint">Versi ini diteruskan ke workflow build. Framework dan dependensi proyek tetap menentukan kompatibilitas toolchain.</p></div>
+    <div class="card"><div class="ct">Sambungan mesin build</div><p id="conn" style="margin:0 0 8px;font-weight:700"></p><p class="hint" style="margin:0;color:var(--ink)">Worker berjalan melalui GitHub Actions. PAT diperlukan dengan izin Contents, Actions, dan Secrets pada repositori worker.</p><button type="button" class="btn alt mini" id="reconnectBtn" style="margin-top:12px">Atur koneksi GitHub</button></div>
+    <div class="card"><div class="ct">Perangkat &amp; notifikasi</div>
+      <label class="tg"><span>Layar tetap menyala saat build</span><input type="checkbox" data-pref="wake"></label>
+      <label class="tg"><span>Getar saat build selesai</span><input type="checkbox" data-pref="vib"></label>
+      <label class="tg"><span>Suara saat build selesai</span><input type="checkbox" data-pref="snd"></label>
+      <label class="tg"><span>Notifikasi peramban</span><input type="checkbox" data-pref="ntf"></label>
+      <label class="tg"><span>Gulir log otomatis</span><input type="checkbox" data-pref="auto"></label>
+      <label class="tg"><span>Cap waktu di log</span><input type="checkbox" data-pref="ts"></label>
+      <div class="f" style="margin-top:8px"><span class="tag">Ukuran huruf log</span><select data-pref="fs"><option value="11">Kecil</option><option value="13">Sedang</option><option value="15">Besar</option></select></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn alt mini" id="tVib">Tes getar</button><button class="btn alt mini" id="tSnd">Tes suara</button></div></div>
+    <div class="card"><div class="ct">Status izin perangkat</div><div id="permRows"></div><button class="btn alt mini" id="permRe">Periksa ulang</button></div>
+  </div>
+  <button class="btn" id="saveSet">Simpan pengaturan</button>
+</section>
+</main>
+
+<div class="pn" id="nav"><i class="ind"></i><button class="on" data-go="dasbor">Dasbor</button><button data-go="baru">Build</button><button data-go="riwayat">Riwayat</button><button data-go="set">Atur</button></div>
+<div id="qr" class="modal" hidden><div class="card"><div class="ct">Pindai QR repositori</div><video id="qv" playsinline muted style="width:100%;border:3px solid var(--ink);border-radius:12px;background:#000"></video><p class="hint" id="qm"></p><button class="btn alt" id="qx">Tutup</button></div></div>
+<div id="toast" role="status"></div>
+
+<script>
+const CONFIG={apiBase:"",token:""};
+let net=true,dbc=null,unsub=null;
+const H=()=>CONFIG.token?{Authorization:"Bearer "+CONFIG.token}:{};
+const J=r=>{if(!r.ok)throw new Error("Server menjawab "+r.status);return r.json()};
+const TK=()=>CONFIG.token?"?token="+encodeURIComponent(CONFIG.token):"";
+const API={
+ list:()=>fetch(CONFIG.apiBase+"/builds",{headers:H()}).then(J),
+ machine:()=>fetch(CONFIG.apiBase+"/machine",{headers:H()}).then(J),
+ async startBuild(p,f){
+  if(!CONFIG.apiBase)return{id:"b"+Date.now()};
+  const fd=new FormData();fd.append("meta",JSON.stringify(p));for(const k in f)if(f[k])fd.append(k,f[k]);
+  return fetch(CONFIG.apiBase+"/builds",{method:"POST",headers:H(),body:fd}).then(J)},
+ live(b,on){if(!CONFIG.apiBase)return false;const es=new EventSource(CONFIG.apiBase+"/builds/"+b.id+"/events"+TK());es.onmessage=m=>on(JSON.parse(m.data));es.onerror=()=>netState(false);es.onopen=()=>netState(true);b._es=es;return true},
+ cancel:b=>CONFIG.apiBase?fetch(CONFIG.apiBase+"/builds/"+b.id+"/cancel",{method:"POST",headers:H()}):0,
+ artifact:b=>CONFIG.apiBase?CONFIG.apiBase+"/builds/"+b.id+"/artifact"+TK():null,
+ sync(b){if(!dbc)return;dbc.doc(String(b.id)).set({id:b.id,name:b.name,pkg:b.pkg,ver:b.ver,type:b.type,fmt:b.fmt,st:b.st,t:b.t,pct:b.pct||0}).catch(()=>{dbc=null;unsub&&unsub();toast("Antrean bersama tidak tersedia, build berjalan lokal")})}
+};
+function netState(v){if(net===v)return;net=v;renderAll();toast(v?"Tersambung kembali ke mesin build":"Koneksi ke mesin build terputus")}
+function onEvt(e){
+ if(e.type==="log")addLog(e.text,e.c);
+ if(e.type==="step")drawSteps(e.n);
+ if(e.type==="progress"){cur.pct=e.pct;$("#liveBar").style.width=e.pct+"%";$("#livePct").textContent=e.pct+"%"}
+ if(e.type==="status"){
+  cur.st=e.st;notifyDone(e.st);$("#startBtn").disabled=false;$("#cancelBtn").hidden=true;$("#pb").classList.remove("on");
+  if(e.st==="ok"){cur.pct=100;drawSteps(5);$("#liveBar").style.width="100%";$("#livePct").textContent="100%";$("#dlBtn").hidden=false;$("#installGuide").classList.add("on");toast("Build selesai") }
+  else{drawSteps(2,true);$("#dlBtn").hidden=true;$("#installGuide").classList.remove("on");toast("Build gagal atau dibatalkan")}
+  cur._es&&cur._es.close();renderAll()}
+}
+function dl(b){const u=b&&API.artifact(b);u?window.open(u,"_blank"):toast("Mesin build belum tersambung, unduhan belum tersedia")}
+const STEPS=["Kode","Dependensi","Kompilasi","Tanda tangan","Selesai"];
+let builds=[];
+let cur=null,timer=null,type="debug",fmt="apk",src="zip";
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const LB={ok:"Berhasil",bad:"Gagal",run:"Berjalan"};
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ago=t=>{const m=Math.round((Date.now()-t)/6e4);return m<1?"baru saja":m<60?m+" mnt lalu":m<1440?Math.round(m/60)+" jam lalu":Math.round(m/1440)+" hari lalu"};
+const sp=(s,p)=>`<span class="sp ${s==="ok"?"":s}">${s==="run"?'<i class="dot"></i>':""}${LB[s]}${s==="run"&&p?" "+p+"%":""}</span>`;
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2400)}
+function ind(n){const a=n.querySelector("button.on"),i=n.querySelector(".ind");if(!a||!a.offsetWidth)return;i.style.width=a.offsetWidth+"px";i.style.transform=`translateX(${a.offsetLeft}px)`}
+const inds=()=>{ind($("#tabs"));ind($("#nav"))};
+function go(v){$$(".view").forEach(e=>e.classList.toggle("on",e.id==="v-"+v));$$(".pn button").forEach(b=>b.classList.toggle("on",b.dataset.go===v));inds();scrollTo(0,0)}
+$$("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+$$("[data-t]").forEach(b=>b.onclick=()=>toast(b.dataset.t));
+addEventListener("resize",inds);document.fonts.ready.then(inds);inds();
+
+document.addEventListener("change",e=>{if(e.target.type==="file"&&e.target.id!=="zipIn"&&e.target.files[0])e.target.previousElementSibling.previousElementSibling.textContent=e.target.files[0].name});
+const list=()=>builds.slice(0,4).map(b=>`<div class="item"><span><b>${esc(b.name)}</b><small>${b.ver} · ${ago(b.t)}</small></span>${sp(b.st,b.pct)}</div>`).join("")||'<div class="empty">Belum ada build.</div>';
+function renderAll(){
+ const n=s=>builds.filter(b=>b.st===s).length;
+ $("#sTot").textContent=builds.length;$("#sOk").textContent=n("ok");$("#sBad").textContent=n("bad");$("#sQ").textContent=n("run");
+ $("#recent").innerHTML=$("#recent2").innerHTML=list();
+ const q=$("#q").value.toLowerCase(),f=$("#fil").value;
+ const rows=builds.filter(b=>(!f||b.st===f)&&(!q||(b.name+b.pkg).toLowerCase().includes(q)));
+ $("#rows").innerHTML=rows.map(b=>`<div class="rw"><div><b>${esc(b.name)}</b><small class="mono">${esc(b.pkg)}</small></div><div class="mt">${b.ver} · ${b.type} · ${b.fmt.toUpperCase()} · ${ago(b.t)}</div><div class="ac">${sp(b.st,b.pct)}${b.st==="ok"?`<button class="btn mini" data-dl="${b.id}">Unduh</button>`:""}<button class="btn mini alt" data-rb="${b.id}">Ulangi</button><button class="btn mini alt" data-rm="${b.id}">Hapus</button></div></div>`).join("")||'<div class="empty">Tidak ada build yang cocok.</div>';
+ $$("[data-dl]").forEach(x=>x.onclick=()=>dl(builds.find(b=>String(b.id)===x.dataset.dl)));
+ const run=n("run")>0;$("#mSt").className="sp "+(!net?"bad":run?"run":"");$("#mTxt").textContent=!net?"Terputus":run?"Sedang membangun":CONFIG.apiBase?"Mesin siap":"Tidak terhubung";
+}
+$("#q").oninput=$("#fil").onchange=renderAll;
+function seg(id,cb){$$("#"+id+" button").forEach(b=>b.onclick=()=>{$$("#"+id+" button").forEach(x=>x.classList.remove("on"));b.classList.add("on");cb(b.dataset.v)})}
+seg("typeSeg",v=>{type=v;$("#signCard").hidden=v!=="release"});seg("fmtSeg",v=>fmt=v);
+seg("srcSeg",v=>{src=v;$("#srcZip").hidden=v!=="zip";$("#srcGit").hidden=v!=="git"});
+$$("#arch .chip").forEach(c=>c.onclick=()=>c.classList.toggle("on"));
+$("#drop").onclick=()=>$("#zipIn").click();
+$("#drop").onkeydown=e=>{if(e.key==="Enter"||e.key===" ")$("#zipIn").click()};
+$("#zipIn").onchange=e=>{const f=e.target.files[0];if(f){$("#drop").innerHTML="<i>✓</i>"+esc(f.name)+" ("+(f.size/1048576).toFixed(1)+" MB)";$("#drop").classList.add("has")}};
+const drawSteps=(n,fail)=>$("#steps").innerHTML=STEPS.map((s,i)=>`<span class="st ${fail&&i===n?"fail":i<n?"done":i===n?"now":""}">${s}</span>`).join("");
+let prefs={},logBuf=[];
+const addLog=(t,c)=>{const l=$("#log"),s=(prefs.ts?new Date().toTimeString().slice(0,8)+"  ":"")+t;logBuf.push(s);l.insertAdjacentHTML("beforeend",`<div class="${c||""}">${esc(s)}</div>`);if(prefs.auto!==false)l.scrollTop=l.scrollHeight};
+drawSteps(-1);
+$("#startBtn").onclick=async()=>{
+ const name=$("#appName").value.trim(),pkg=$("#pkg").value.trim();
+ if(!name){toast("Isi nama aplikasi dulu");$("#appName").focus();return}
+ if(!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(pkg)){toast("ID paket harus seperti com.contoh.app");$("#pkg").focus();return}
+ if(src==="zip"&&!$("#zipIn").files.length){toast("Pilih berkas ZIP proyek");return}
+ if(src==="git"&&!$("#gitUrl").value.trim()){toast("Isi URL repositori");return}
+ if(type==="release"&&CONFIG.apiBase&&!$("#signCard input[type=file]").files[0]){toast("Pilih berkas keystore untuk build release");return}
+ let r;try{r=await API.startBuild({name,pkg,type,fmt,ver:$("#vName").value,vcode:+$("#vCode").value,framework:$("#framework").value,env:$("#env").value,git:src==="git"?{url:$("#gitUrl").value,branch:$("#gitBr").value,token:$("#gitTok").value}:null,keystore:type==="release"?{alias:$("#alias").value,password:$("#ksPw").value}:null,permissions:permList(),features:featList(),options:optList()},{zip:src==="zip"?$("#zipIn").files[0]:null,icon:$("input[accept='image/png']").files[0],keystore:type==="release"?$("#signCard input[type=file]").files[0]:null,gservices:$("#gsv").files[0]})}catch(e){toast(e.message||"Gagal menghubungi mesin build");return}
+ cur={id:r.id,name,pkg,ver:$("#vName").value,type,fmt,st:"run",t:Date.now()};builds.unshift(cur);renderAll();API.sync(cur);keepAwake(true);
+ $("#log").innerHTML="";logBuf.length=0;$("#dlBtn").hidden=true;$("#installGuide").classList.remove("on");$("#cancelBtn").hidden=false;$("#liveBar").style.width="0";$("#livePct").textContent="0%";$("#pb").classList.add("on");
+ $("#liveTitle").textContent="Membangun "+name;$("#startBtn").disabled=true;drawSteps(0);
+ $("#log").scrollIntoView({behavior:"smooth",block:"center"});
+ if(API.live(cur,onEvt))return;
+ finish("bad");toast("Tidak ada worker build tersambung. Build tidak disimulasikan.");
+};
+function finish(st){
+ clearInterval(timer);cur.st=st;if(st==="ok")cur.pct=100;API.sync(cur);notifyDone(st);$("#startBtn").disabled=false;$("#cancelBtn").hidden=true;$("#pb").classList.remove("on");
+ if(st==="ok"){drawSteps(5);$("#liveBar").style.width="100%";$("#dlBtn").hidden=false;toast("Build selesai")}
+ else{addLog("Build dibatalkan","e");drawSteps(2,true);$("#dlBtn").hidden=true;$("#livePct").textContent=cur?.pct||"0";toast("Build dibatalkan")}
+ renderAll();
+}
+$("#cancelBtn").onclick=async()=>{try{await API.cancel(cur)}catch(e){}finish("bad")};
+$("#dlBtn").onclick=()=>dl(cur);
+["cpu","ram","dsk"].forEach(k=>{const t=$("#"+k+"T"),b=$("#"+k+"B");if(t)t.textContent="—";if(b)b.style.width="0%"});
+renderAll();
+</script>
+<script>
+(()=>{
+ builds=[];renderAll();
+ const setM=(k,v)=>{$("#"+k+"T").textContent=v+"%";$("#"+k+"B").style.width=v+"%"},conn=$("#conn");
+ if(CONFIG.apiBase){
+  conn.textContent="Server: "+CONFIG.apiBase;
+  const poll=async()=>{try{
+   builds=(await API.list()).map(b=>({...b}));
+   if(cur&&cur.st==="run"){const m=builds.find(b=>b.id===cur.id);if(m&&m.st!=="run")onEvt({type:"status",st:m.st})}
+   netState(true);renderAll();
+   const m=await API.machine();setM("cpu",m.cpu);setM("ram",m.ram);setM("dsk",m.disk);
+   $("#mInfo").textContent=`Android SDK ${m.sdk}, Gradle ${m.gradle}, JDK ${m.jdk}`;
+  }catch(e){netState(false)}};
+  poll();setInterval(poll,3000);
+ }else{
+  conn.textContent="GitHub Actions belum dikonfigurasi";
+  $("#mInfo").textContent="Masukkan owner, repositori privat, dan PAT untuk menjalankan build sungguhan.";
+ }
+ setInterval(renderAll,30000);
+ const SK=["jdk","grd"];
+ try{const s=JSON.parse(localStorage.getItem("pf-set")||"{}");SK.forEach(k=>{if(s[k]!=null&&$("#"+k))$("#"+k).value=s[k]})}catch(e){}
+ $("#saveSet").onclick=()=>{try{localStorage.setItem("pf-set",JSON.stringify(Object.fromEntries(SK.map(k=>[k,$("#"+k).value]))));toast("Toolchain disimpan di perangkat ini")}catch(e){toast("Penyimpanan peramban diblokir")}};
+})();
+</script>
+<script>
+const PM=[
+["Jaringan",[
+  ["INTERNET","Internet"],["ACCESS_NETWORK_STATE","Status jaringan"],["ACCESS_WIFI_STATE","Status Wi-Fi"],
+  ["CHANGE_WIFI_STATE","Ubah Wi-Fi"],["NFC","NFC"]
+]],
+["Kamera, audio & perangkat",[
+  ["CAMERA","Kamera",1],["RECORD_AUDIO","Mikrofon",1],["VIBRATE","Getar"],
+  ["WAKE_LOCK","Layar tetap menyala"],["FLASHLIGHT","Senter"],["USE_BIOMETRIC","Biometrik",1],
+  ["USE_FINGERPRINT","Sidik jari",1],["BODY_SENSORS","Sensor tubuh",1],
+  ["ACTIVITY_RECOGNITION","Aktivitas fisik",1]
+]],
+["Bluetooth & konektivitas dekat",[
+  ["BLUETOOTH","Bluetooth (lama)"],["BLUETOOTH_ADMIN","Kelola Bluetooth (lama)"],
+  ["BLUETOOTH_CONNECT","Hubungkan perangkat Bluetooth",1],["BLUETOOTH_SCAN","Pindai Bluetooth",1],
+  ["BLUETOOTH_ADVERTISE","Siarkan Bluetooth",1],["UWB_RANGING","Ultra-wideband",1]
+]],
+["Lokasi",[
+  ["ACCESS_FINE_LOCATION","Lokasi akurat",1],["ACCESS_COARSE_LOCATION","Lokasi perkiraan",1],
+  ["ACCESS_BACKGROUND_LOCATION","Lokasi latar belakang",1],["ACCESS_MEDIA_LOCATION","Lokasi media",1]
+]],
+["Foto, video & file",[
+  ["READ_MEDIA_IMAGES","Baca foto",1],["READ_MEDIA_VIDEO","Baca video",1],
+  ["READ_MEDIA_AUDIO","Baca audio",1],["READ_MEDIA_VISUAL_USER_SELECTED","Foto/video pilihan pengguna",1],
+  ["READ_EXTERNAL_STORAGE","Baca penyimpanan lama",1],["WRITE_EXTERNAL_STORAGE","Tulis penyimpanan lama",1],
+  ["MANAGE_EXTERNAL_STORAGE","Kelola semua file",1]
+]],
+["Kontak, kalender & telepon",[
+  ["READ_CONTACTS","Baca kontak",1],["WRITE_CONTACTS","Ubah kontak",1],
+  ["READ_CALENDAR","Baca kalender",1],["WRITE_CALENDAR","Ubah kalender",1],
+  ["READ_PHONE_STATE","Status telepon",1],["READ_PHONE_NUMBERS","Nomor telepon",1],
+  ["CALL_PHONE","Lakukan panggilan",1],["ANSWER_PHONE_CALLS","Jawab panggilan",1]
+]],
+["SMS & log panggilan",[
+  ["SEND_SMS","Kirim SMS",1],["RECEIVE_SMS","Terima SMS",1],["READ_SMS","Baca SMS",1],
+  ["RECEIVE_MMS","Terima MMS",1],["RECEIVE_WAP_PUSH","Terima WAP Push",1],
+  ["READ_CALL_LOG","Baca log panggilan",1],["WRITE_CALL_LOG","Ubah log panggilan",1]
+]],
+["Layanan & sistem",[
+  ["POST_NOTIFICATIONS","Notifikasi",1],["FOREGROUND_SERVICE","Layanan latar depan"],
+  ["FOREGROUND_SERVICE_DATA_SYNC","Layanan sinkronisasi"],["FOREGROUND_SERVICE_CAMERA","Layanan kamera"],
+  ["FOREGROUND_SERVICE_MICROPHONE","Layanan mikrofon"],["FOREGROUND_SERVICE_LOCATION","Layanan lokasi"],
+  ["FOREGROUND_SERVICE_MEDIA_PLAYBACK","Pemutaran media latar depan"],
+  ["RECEIVE_BOOT_COMPLETED","Jalankan setelah perangkat menyala"],
+  ["SCHEDULE_EXACT_ALARM","Alarm tepat waktu",1],["USE_EXACT_ALARM","Alarm presisi",1],
+  ["REQUEST_IGNORE_BATTERY_OPTIMIZATIONS","Abaikan optimasi baterai",1],
+  ["SYSTEM_ALERT_WINDOW","Tampil di atas aplikasi lain",1],["QUERY_ALL_PACKAGES","Lihat aplikasi terpasang",1],
+  ["REQUEST_INSTALL_PACKAGES","Minta izin memasang paket",1],["USE_FULL_SCREEN_INTENT","Notifikasi layar penuh",1]
+]]];
+const BASE=["INTERNET","ACCESS_NETWORK_STATE"],permSel=new Set(BASE),customPerms=new Set();
+const allPermissions=()=>[...new Set([...permSel].map(k=>"android.permission."+k).concat([...customPerms]))];
+function permissionCount(){$("#pcnt").textContent=allPermissions().length+" dipilih"}
+function customPermDraw(){$("#customPermRows").innerHTML=[...customPerms].map(p=>`<span class="chip on" style="display:inline-flex;align-items:center;gap:7px">${p}<button type="button" data-remove-perm="${p}" aria-label="Hapus ${p}" style="border:0;background:transparent;font-weight:900;padding:0 2px">×</button></span>`).join("")}
+function permDraw(){$("#perms").innerHTML=PM.map(([g,l])=>`<div class="pg"><span class="tag">${g}</span><div class="chips">${l.map(([k,n,s])=>`<button type="button" class="chip${permSel.has(k)?" on":""}" data-pk="${k}">${n}${s?" !":""}</button>`).join("")}</div></div>`).join("");permissionCount();customPermDraw()}
+$("#perms").onclick=e=>{const b=e.target.closest("[data-pk]");if(!b)return;const k=b.dataset.pk;permSel.has(k)?permSel.delete(k):permSel.add(k);b.classList.toggle("on");permissionCount()};
+$("#customPermRows").onclick=e=>{const b=e.target.closest("[data-remove-perm]");if(!b)return;customPerms.delete(b.dataset.removePerm);customPermDraw();permissionCount()};
+$("#permAdd").onclick=()=>{const input=$("#permCustom"),raw=input.value.trim();if(!raw){toast("Masukkan nama permission terlebih dahulu");input.focus();return}const full=raw.includes(".")?raw:"android.permission."+raw;if(full.length>180||! /^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$/.test(full)){toast("Format permission tidak valid");return}if(allPermissions().includes(full)){toast("Permission sudah ada");return}customPerms.add(full);input.value="";customPermDraw();permissionCount()};
+$("#permCustom").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("#permAdd").click()}});
+$("#pBase").onclick=()=>{permSel.clear();customPerms.clear();BASE.forEach(k=>permSel.add(k));permDraw()};
+$("#pNone").onclick=()=>{permSel.clear();customPerms.clear();permDraw()};
+permDraw();
+const permList=()=>allPermissions();
+const featList=()=>({orientation:$("#ori").value,...Object.fromEntries($$("[data-feat]").map(e=>[e.dataset.feat,e.checked]))});
+const optList=()=>({...Object.fromEntries($$("[data-opt]").map(e=>[e.dataset.opt,e.checked])),abis:$$("#arch .chip.on").map(c=>c.textContent),minSdk:+$("#minSdk").value,targetSdk:+$("#tgtSdk").value,jdk:$("#jdk").value,gradle:$("#grd").value,timeoutMin:+$("#tmo").value,subdir:$("#sub").value,outputName:$("#outn").value,webOutputDir:$("#webOut").value,gradleArgs:$("#gargs").value});
+const DEF={wake:true,vib:true,snd:true,ntf:false,auto:true,ts:true,fs:"13"};
+try{Object.assign(prefs,DEF,JSON.parse(localStorage.getItem("pf-prefs")||"{}"))}catch(e){Object.assign(prefs,DEF)}
+async function askNotif(){try{return await Notification.requestPermission()}catch(e){return"denied"}}
+$$("[data-pref]").forEach(el=>{const k=el.dataset.pref,cb=el.type==="checkbox";cb?el.checked=!!prefs[k]:el.value=prefs[k];
+ el.onchange=async()=>{prefs[k]=cb?el.checked:el.value;
+  if(k==="ntf"&&el.checked&&await askNotif()!=="granted"){el.checked=false;prefs.ntf=false;toast("Izin notifikasi tidak diberikan")}
+  if(k==="fs")$("#log").style.fontSize=prefs.fs+"px";
+  try{localStorage.setItem("pf-prefs",JSON.stringify(prefs))}catch(e){}permRender()}});
+$("#log").style.fontSize=prefs.fs+"px";
+let wl=null;
+async function keepAwake(on){try{if(on&&prefs.wake&&"wakeLock"in navigator)wl=await navigator.wakeLock.request("screen");else if(wl){await wl.release();wl=null}}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&cur&&cur.st==="run")keepAwake(true)});
+function beep(ok,force){if(!prefs.snd&&!force)return;try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type="square";g.gain.value=.06;const f=ok?[660,880]:[300,220];o.frequency.setValueAtTime(f[0],c.currentTime);o.frequency.setValueAtTime(f[1],c.currentTime+.15);o.start();o.stop(c.currentTime+.32)}catch(e){}}
+function notifyDone(st){keepAwake(false);const ok=st==="ok";
+ if(prefs.vib&&navigator.vibrate)navigator.vibrate(ok?[180,80,180]:[400,120,400,120,400]);
+ beep(ok);
+ if(prefs.ntf&&"Notification"in window&&Notification.permission==="granted"&&document.visibilityState!=="visible")try{new Notification(ok?"Build selesai":"Build gagal",{body:cur?cur.name:""})}catch(e){}}
+$("#tVib").onclick=()=>navigator.vibrate?(navigator.vibrate([200,80,200]),toast("Getar diuji")):toast("Perangkat tidak mendukung getar");
+$("#tSnd").onclick=()=>beep(true,true);
+const PL={granted:["Diizinkan",""],denied:["Ditolak","bad"],prompt:["Belum ditanya","run"],default:["Belum ditanya","run"],na:["Tidak didukung","na"]};
+const PS=[["Notifikasi peramban",async()=>"Notification"in window?Notification.permission:"na","notif"],["Kamera",async()=>{try{return(await navigator.permissions.query({name:"camera"})).state}catch(e){return navigator.mediaDevices?"prompt":"na"}},"cam"],["Layar tetap menyala",async()=>"wakeLock"in navigator?"granted":"na"],["Getar",async()=>navigator.vibrate?"granted":"na"],["Papan klip",async()=>navigator.clipboard?"granted":"na"]];
+async function permRender(){
+ const out=[];
+ for(const[n,f,k] of PS){
+  let s;try{s=await f()}catch(e){s="na"}
+  const[l,c]=PL[s]||PL.na;
+  out.push(`<div class="item"><span><b>${n}</b></span><span style="display:flex;gap:8px;align-items:center"><span class="sp ${c}"${c==="na"?' style="background:#fff"':""}>${l}</span>${k&&s!=="granted"&&s!=="na"?`<button class="btn mini" data-ask="${k}">Izinkan</button>`:""}</span></div>`);
+ }
+ $("#permRows").innerHTML=out.join("");
+}
+$("#permRows").onclick=async e=>{const b=e.target.closest("[data-ask]");if(!b)return;try{if(b.dataset.ask==="notif")await Notification.requestPermission();else{const s=await navigator.mediaDevices.getUserMedia({video:true});s.getTracks().forEach(t=>t.stop())}}catch(err){toast("Izin tidak diberikan atau diblokir peramban")}permRender()};
+$("#permRe").onclick=permRender;permRender();
+let qs=null,qt=null;
+async function qrOpen(){const v=$("#qv"),m=$("#qm");$("#qr").hidden=false;m.textContent="Meminta izin kamera…";
+ try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error("Peramban ini tidak mendukung kamera");
+  qs=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});v.srcObject=qs;await v.play();
+  if(!("BarcodeDetector"in window)){m.textContent="Kamera aktif, tetapi peramban ini belum bisa membaca QR. Ketik URL secara manual.";return}
+  const d=new BarcodeDetector({formats:["qr_code"]});m.textContent="Arahkan kamera ke kode QR";
+  qt=setInterval(async()=>{try{const r=await d.detect(v);if(r[0]){$("#gitUrl").value=r[0].rawValue;qrClose();toast("URL terisi dari QR")}}catch(e){}},400);
+ }catch(e){m.textContent=e.name==="NotAllowedError"?"Izin kamera ditolak. Aktifkan lewat pengaturan situs di peramban.":(e.message||"Kamera tidak tersedia")}}
+function qrClose(){clearInterval(qt);qs&&qs.getTracks().forEach(t=>t.stop());qs=null;$("#qr").hidden=true}
+$("#qrBtn").onclick=qrOpen;$("#qx").onclick=qrClose;
+async function saveFile(name,data,type){try{const d=await claude.use("downloads");if(d){await d.save({filename:name,data});return}}catch(e){}
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:type||"text/plain"}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1e3)}
+$("#lcopy").onclick=async()=>{try{await navigator.clipboard.writeText(logBuf.join("\n"));toast("Log disalin")}catch(e){toast("Peramban menolak akses papan klip")}};
+$("#lsave").onclick=()=>logBuf.length?saveFile((cur?cur.name:"build")+"-log.txt",logBuf.join("\n")):toast("Log masih kosong");
+$("#lclear").onclick=()=>{logBuf.length=0;$("#log").innerHTML=""};
+$("#exp").onclick=()=>{if(!builds.length){toast("Belum ada riwayat");return}const q=v=>'"'+String(v).replace(/"/g,'""')+'"',rows=[["Nama","ID paket","Versi","Jenis","Format","Status","Waktu"],...builds.map(b=>[b.name,b.pkg,b.ver,b.type,b.fmt,LB[b.st],new Date(b.t).toISOString()])];saveFile("riwayat-build.csv",rows.map(r=>r.map(q).join(",")).join("\n"),"text/csv")};
+let arm=0;$("#clr").onclick=()=>{if(!arm){arm=1;toast("Tekan sekali lagi untuk menghapus semua");setTimeout(()=>arm=0,3000);return}arm=0;builds.forEach(b=>dbc&&dbc.doc(String(b.id)).delete().catch(()=>{}));builds=[];renderAll()};
+document.addEventListener("click",e=>{const x=e.target.closest("[data-rb],[data-rm]");if(!x)return;
+ if(x.dataset.rb){const b=builds.find(b=>String(b.id)===x.dataset.rb);if(!b)return;$("#appName").value=b.name;$("#pkg").value=b.pkg;$("#vName").value=b.ver;go("baru");toast("Data disalin. Pilih sumber kode lalu jalankan build")}
+ else{const id=x.dataset.rm;builds=builds.filter(b=>String(b.id)!==id);if(dbc)dbc.doc(id).delete().catch(()=>{});renderAll()}});
+addEventListener("offline",()=>toast("Perangkat sedang offline"));addEventListener("online",()=>toast("Kembali online"));
+</script>
+<script src="https://cdn.jsdelivr.net/npm/libsodium-wrappers-sumo@0.8.4/dist/browsers-sumo/sodium.js" crossorigin="anonymous"></script>
+<script src="patch.js?v=11"></script>
+</body>
+</html>
